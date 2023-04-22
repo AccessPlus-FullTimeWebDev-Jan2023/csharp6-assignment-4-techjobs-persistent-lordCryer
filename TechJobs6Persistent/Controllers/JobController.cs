@@ -31,45 +31,68 @@ namespace TechJobs6Persistent.Controllers
 
         public IActionResult Add()
         {
-            return View();
+            List<Employer> employers = context.Employers.ToList();
+
+
+            AddJobViewModel newAddJobViewModel = new AddJobViewModel(employers);
+            return View(newAddJobViewModel);
+
         }
 
         [HttpPost]
-        public IActionResult ProcessAddJobForm()
+        public IActionResult Add(AddJobViewModel newAddJobViewModel)
         {
-            return View();
-        }
-
-        public IActionResult Delete()
-        {
-            ViewBag.jobs = context.Jobs.ToList();
-
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Delete(int[] jobIds)
-        {
-            foreach (int jobId in jobIds)
+            if (ModelState.IsValid)
             {
-                Job theJob = context.Jobs.Find(jobId);
-                context.Jobs.Remove(theJob);
+                Employer newEmployer = context.Employers.Find(newAddJobViewModel.EmployerId);
+
+                Job job = new Job
+                {
+                    Name = newAddJobViewModel.JobName,
+                    Employer = newEmployer
+
+                };
+
+                context.Jobs.Add(job);
+                context.SaveChanges();
+
+                return Redirect("/Job");
             }
 
-            context.SaveChanges();
+                return View(newAddJobViewModel);
+            }
 
-            return Redirect("/Job");
-        }
+            public IActionResult Delete()
+            {
+                ViewBag.jobs = context.Jobs.ToList();
 
-        public IActionResult Detail(int id)
-        {
-            Job theJob = context.Jobs.Include(j => j.Employer).Include(j => j.Skills).Single(j => j.Id == id);
+                return View();
+            }
 
-            JobDetailViewModel jobDetailViewModel = new JobDetailViewModel(theJob);
+            [HttpPost]
+            public IActionResult Delete(int[] jobIds)
+            {
+                foreach (int jobId in jobIds)
+                {
+                    Job theJob = context.Jobs.Find(jobId);
+                    context.Jobs.Remove(theJob);
+                }
 
-            return View(jobDetailViewModel);
+                context.SaveChanges();
 
-        }
+                return Redirect("/Job");
+            }
+
+            public IActionResult Detail(int id)
+            {
+                Job theJob = context.Jobs.Include(j => j.Employer).Include(j => j.Skills).Single(j => j.Id == id);
+
+                JobDetailViewModel jobDetailViewModel = new JobDetailViewModel(theJob);
+
+                return View(jobDetailViewModel);
+
+            }
+        
     }
 }
 
